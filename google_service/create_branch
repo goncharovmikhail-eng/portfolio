@@ -1,0 +1,7 @@
+git branch $1
+git switch $1
+echo "1" > 1
+git add .
+git commit -m "1"
+git push origin $1
+rm 1
