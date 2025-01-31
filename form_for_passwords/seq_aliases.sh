@@ -16,3 +16,15 @@ function passwdw() {
     chmod 700 $encrypt_file
     sudo chattr +i $encrypt_file
 }
+function nrem {
+    chmod 700 $1
+    sudo chattr +i $1
+}
+alias yrem="sudo chattr -i $1"
+function newsecret() {
+    local file="$1"
+    nano $1
+    gpg --quiet --batch --yes --encrypt --recipient "your_email_of_gpgkey" --output $file.gpg $file
+    shred -u $file
+    chmod 700 $file.gpg
+}
