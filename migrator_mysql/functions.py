@@ -5,26 +5,26 @@ import pymysql
 import os
 import subprocess
 
-def create_user(host, admin_user, admin_password, new_user, new_password, database):
+def create_user(host, admin_user, admin_password, user, new_password, database, range_ip):
     """
     Создает пользователя в MySQL/MariaDB и выдает ему права на указанную базу.
     """
     try:
-        # Подключаемся к серверу
+        use_socket = host in ('localhost', '127.0.0.1')
         conn = pymysql.connect(
             host=host,
             user=admin_user,
             password=admin_password,
-            unix_socket="/var/lib/mysqld/mysqld.sock" or "/var/lib/mysql/mysql.sock"
+            unix_socket="/var/lib/mysqld/mysqld.sock" if use_socket else None
         )
 
         with conn.cursor() as cursor:
             # Создаем пользователя (если его нет)
-            cursor.execute(f"CREATE USER IF NOT EXISTS '{new_user}'@'%' IDENTIFIED BY '{new_password}';")
+            cursor.execute(f"CREATE USER IF NOT EXISTS '{user}'@'{range_ip}' IDENTIFIED BY '{new_password}';")
 
             # Даем пользователю права на указанную базу
-            cursor.execute(f"GRANT ALL PRIVILEGES ON {database}.* TO '{new_user}'@'%';")
-
+            cursor.execute(f"GRANT ALL PRIVILEGES ON {database}.* TO '{user}'@'{range_ip}';")
+            cursor.execute(f"GRANT PROCESS ON *.* TO '{user}'@'{range_ip}';")
             # Фиксируем изменения
             cursor.execute("FLUSH PRIVILEGES;")
 
@@ -61,12 +61,12 @@ def append_mysql_config(section, user, password, host):
 
     print(f"✅ Раздел [{section}] добавлен в {config_path}.")
 
-def check_mysql_connection(suffix="A"):
+def check_mysql_connection(point):
     print("Проверяем соединение с MySQL...")
 
     try:
         result = subprocess.run(
-            ["mysql", f"--defaults-group-suffix={suffix}", "-e", "SHOW DATABASES;"],
+            ["mysql", f"--defaults-group-suffix={point}", "-e", "SHOW DATABASES;"],
             capture_output=True, text=True, check=True
         )
         print("Подключение успешно! Доступные базы данных:\n")
