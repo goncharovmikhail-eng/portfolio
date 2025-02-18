@@ -1,6 +1,9 @@
 import getpass
 import pymysql
-from utils import *
+from utils.get_or_update_credentials import get_or_update_credentials
+from utils.get_connection import get_connection
+from utils.create_user import create_user
+from utils.check_mysql_connection import check_mysql_connection
 
 def get_admin_and_ip_range(section, user):
     """Запрашивает у пользователя имя и пароль администратора, а также диапазон IP-адресов для пользователя."""
@@ -27,5 +30,4 @@ def setup_section(section, create_db, database):
     print(f"\n🔹 Пишем данные для секции {section}:\n")
 
     user, user_password, host = get_or_update_credentials(section_name)
-
     confirm_and_create_user(section, user, user_password, host, database, create_db)
