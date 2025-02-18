@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  my_migrator:
+    build: .
+    container_name: my_migrator
+    volumes:
+      - .:/root
+    stdin_open: true
+    tty: true
