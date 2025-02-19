@@ -20,6 +20,7 @@ def get_user_input(section_name):
 #    user = f"{p_num}_{vm_num}_user"
     user = input(f"Введите имя создаваемого юзера на сервере {section_name} (Enter для 'sender'): ") or "sender"
     user_password = generate_password()
+    print(f"User: {user}, Password: {user_password}")
     host = input(f"IP адрес сервера {section_name} (Enter для 'localhost'): ") or "localhost"
     return user, user_password, host
 
@@ -27,7 +28,7 @@ def get_or_update_credentials(section_name):
     """Получает или обновляет учетные данные пользователя MySQL."""
     if check_and_prompt_overwrite(section_name):
         user, user_password, host = get_user_input(section_name)
-        append_mysql_config(section_name, user, user_password, host)  # без лишней функции
+        append_mysql_config(section_name, user, user_password, host)
         print(f"✅ Данные обновлены и записаны в ~/.my.cnf")
     else:
         user = "sender"
