@@ -30,7 +30,8 @@ SESSION_VARIABLES_ADMIN, SET_USER_ID, SHOW_ROUTINE, SYSTEM_USER, SYSTEM_VARIABLE
 TABLE_ENCRYPTION_ADMIN, TELEMETRY_LOG_ADMIN, XA_RECOVER_ADMIN
 ON *.* TO 'test'@'%' WITH GRANT OPTION;
 
-GRANT PROXY ON ``@`` TO 'test'@'%' WITH GRANT OPTION;```
+GRANT PROXY ON ``@`` TO 'test'@'%' WITH GRANT OPTION;
+```
 
 ###Важно: 
 Вы можете не использовать команду FLUSH PRIVILEGES;, чтобы изменения не сохранялись после работы скрипта.
@@ -53,6 +54,10 @@ GRANT PROXY ON ``@`` TO 'test'@'%' WITH GRANT OPTION;```
 Также, если созданные новый пользователь больше не нужен, его следует удалить вручную.
 
 ##Как использовать с Docker:
+```bash
 docker-compose up -d
 docker-compose run --rm my_migrator
+```
+```bash
 docker compose down
+```
