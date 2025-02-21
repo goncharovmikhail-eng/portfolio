@@ -1,0 +1,6 @@
+#!/bin/bash
+
+{% for container in containers %}
+  echo "Creating new image from container {{ container }}..."
+  docker commit {{ container }} {{ container }}:latest
+{% endfor %}

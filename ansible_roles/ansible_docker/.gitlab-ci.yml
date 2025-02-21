@@ -1,0 +1,5 @@
+---
+include:
+  - project: 'devops/devops-gitlab-ci'
+    ref: main
+    file: '/ansible/roles/gitlab-ci.yml'

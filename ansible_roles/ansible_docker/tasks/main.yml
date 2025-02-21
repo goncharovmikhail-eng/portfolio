@@ -1,0 +1,58 @@
+---
+- name: remove old versions
+  ansible.builtin.package:
+    name: "{{ docker_upgrade_clean_list }}"
+    state: absent
+  when:
+    - docker_upgrade_enable
+
+- name: install needed packages
+  ansible.builtin.package:
+    name: "{{ docker_pkgs }}"
+    # state: fixed
+
+- name: create dir for docker projects
+  file:
+    path: "{{ docker_project_dir }}"
+    state: directory
+    mode: '0777'
+    owner: root
+    group: root
+
+- name: setup deb like
+  include_tasks: deb.yml
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: create prune script
+  template:
+    src: prune.sh.j2
+    dest: "{{ docker_prune_script }}"
+    owner: root
+    group: root
+    mode: '0755'
+    # даем возможность его править
+    force: false
+
+- name: cron prune script
+  cron:
+    name: "prune docker objects"
+    minute: "30"
+    hour: "3"
+    weekday : "6"
+    job: "{{ docker_prune_script }} > /tmp/prune_sh.log 2>&1"
+    state: present
+
+- name: create motd
+  template:
+    src: motd.sh.j2
+    dest: "{{ docker_notify_script }}"
+    owner: root
+    group: root
+    mode: '0755'
+    # даем возможность его править
+    # force: false
+
+- name: backup containers
+  include_tasks: backup.yml
+  when: docker_backup

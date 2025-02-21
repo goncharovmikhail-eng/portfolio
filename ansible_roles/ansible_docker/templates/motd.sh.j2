@@ -1,0 +1,5 @@
+{% set _message = 'root dir for projects: ' + docker_project_dir | string %}
+#!/bin/bash
+echo -e '\033[34m##{{ "#" * _message | length }}##
+#\033[33m {{ _message }} \033[34m#
+{{ "#" * _message | length }}####\033[0m'

@@ -1,0 +1,30 @@
+---
+docker_backup: false
+docker_upgrade_enable: false
+docker_upgrade_clean_list:
+  - docker.io
+  - docker-doc
+  - docker-compose
+  - podman-docker
+  - containerd
+  - runc
+
+docker_pkgs:
+  - ca-certificates
+  - curl
+  - gnupg
+
+docker_debian_gpg: https://download.docker.com/linux/debian/gpg
+
+docker_project_dir: /docker
+
+docker_service: docker.service
+docker_service_override_dir: "/etc/systemd/system/{{ docker_service }}.d"
+
+docker_packages:
+  - docker-ce
+  - docker-compose-plugin
+
+docker_prune_script: /opt/prune.sh
+
+docker_notify_script: /etc/profile.d/docker.sh
