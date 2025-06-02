@@ -118,11 +118,11 @@ c() {
 #}
 #sequer
 alias passwdg="cat /dev/urandom |tr -dc A-Za-z0-9 | head -c $1"
-function gpgrest {
-    echo "gpgconf --kill gpg-agent"
-    echo "gpgconf --launch gpg-agent"
-}
-gpgrest
+# function gpgrest {
+#     echo "gpgconf --kill gpg-agent"
+#     echo "gpgconf --launch gpg-agent"
+# }
+# gpgrest
 function rem {
     chmod 700 $1
     sudo chattr +i $1
