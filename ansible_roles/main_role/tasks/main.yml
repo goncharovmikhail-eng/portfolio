@@ -1,0 +1,63 @@
+---
+- name: Обновить все пакеты на системе
+  yum:
+    name: "*"
+    state: latest
+  tags:
+    - update
+  
+- name: Установить новое имя хоста  
+  hostname:  
+    name: "{{ server_hostname }}"
+  tags:
+    - update
+
+- name: Создать MOTD  
+  template:  
+    src: motd.sh.j2  
+    dest: /etc/profile.d/motd.sh
+    owner: root  
+    group: root  
+    mode: '0755'
+  tags:
+    - update
+
+- name: Установка зависимостей yum  
+  ansible.builtin.yum:  
+    name: 
+      - libgcrypt  
+      - chrony  
+      - wget  
+      - curl  
+      - unzip  
+      - htop  
+      - nmap  
+      - telnet  
+      - git
+      - tree
+      - traceroute
+    state: present
+  tags:
+    - update
+
+- name: Установка временной зоны
+  file:
+    src: /usr/share/zoneinfo/{{ time_zone }}
+    dest: /etc/localtime
+    state: link
+    force: true
+
+- name: Перенос алиасев
+  ansible.builtin.copy:
+    src: alias.sh
+    dest: /root/alias.sh
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Добавить строку source /root/alias.sh в конец .bashrc
+  ansible.builtin.lineinfile:
+    path: /root/.bashrc
+    line: 'source /root/alias.sh'
+    insertafter: EOF
+    state: present
