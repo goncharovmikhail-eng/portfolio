@@ -1,0 +1,73 @@
+---
+- name: init db and add to enable
+  block: 
+    - name: Проверка состояния службы postgresql-13
+      systemd:
+        name: postgresql-13 
+        state: started
+      register: _postgresql_status
+      ignore_errors: yes 
+
+    - name: Проверить, пуста ли директория данных postgresql-13
+      stat:
+        path: "{{postgre_hba_conf}}"
+      register: _pg_data_dir_stat
+      ignore_errors: yes
+
+    - name: Инициализация БД
+      command: /usr/pgsql-13/bin/postgresql-13-setup initdb  
+      args:  
+        creates: /var/lib/pgsql/13/data/PG_VERSION
+      ignore_errors: yes
+      when:   
+        - _postgresql_status.status is not defined or _postgresql_status.status != "running"  
+        - _pg_data_dir_stat.stat.exists == false
+
+    - name: postgresql-13 enable
+      systemd:
+        name: postgresql-13
+        enabled: yes
+        state: started
+      when: _postgresql_status.status is not defined or _postgresql_status.status != "running"
+
+- name: Create Zabbix user  
+  become_user: postgres  
+  postgresql_user:  
+    name: "{{ admin_zabbix_postgres_user }}"  
+    password: "{{ admin_zabbix_postgres_password }}"  
+    state: present
+
+- name: Create Zabbix database  
+  become_user: postgres  
+  postgresql_db:  
+    name: "{{ admin_zabbix_postgres_db }}" 
+    encoding: UTF8
+    owner: "{{ admin_zabbix_postgres_user }}"
+    state: present
+
+- name: Даем пользователю "{{ admin_zabbix_postgres_user }}" права суперпользователя
+  postgresql_user:
+    user: "{{ admin_zabbix_postgres_user }}"
+    role_attr_flags: SUPERUSER
+    state: present
+    host: "{{ postgre_socket_dir }}"
+  become_user: postgres
+
+# - name: Отладка переменных  
+#   debug:  
+#     msg: "Имя БД: {{ admin_zabbix_postgres_db }}, Пользователь: {{ admin_zabbix_postgres_user }}, Пароль: {{ admin_zabbix_postgres_password }}"  
+
+- name: Проверить, существует ли разархивированный SQL файл  
+  stat:  
+    path: "{{ admin_zabbix_sql_form_folder }}/server.sql"  
+  register: sql_file_stat  
+
+- name: Разархивировать файл, если он не был разархивирован  
+  command: "gzip -d {{ admin_zabbix_sql_form_folder }}/server.sql.gz"  
+  when: not sql_file_stat.stat.exists  
+
+- name: Импортировать начальную схему и данные в БД для Zabbix  
+  command: psql -h localhost -d {{ admin_zabbix_postgres_db }} -U {{ admin_zabbix_postgres_user }} -f {{ admin_zabbix_sql_form_folder }}/server.sql  
+  environment:  
+    PGPASSWORD: "{{ admin_zabbix_postgres_password }}"
+  when: not sql_file_stat.stat.exists

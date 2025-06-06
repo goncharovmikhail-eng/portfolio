@@ -1,0 +1,63 @@
+---
+- name: Include docker role  
+  include_role:  
+    name: docker
+  when: 
+    - admin_docker
+    - not zabbix_agent
+  tags:
+    - docker
+
+- name: Запуск и настройка zabbix docker-контейнера
+  include: zabbix_docker.yml
+  when: 
+    - admin_docker
+    - admin_zabbix
+    - not zabbix_agent
+  tags:
+    - docker
+
+# заббикс для redos
+- name: zabbix для redos
+  block:
+    - name: ставим psql
+      include_role: 
+        name: psql
+      vars:  
+        postgres_version: "{{ postgre_version }}"
+
+    - name: Установка пакетов для Zabbix  
+      ansible.builtin.yum:  
+        name: "{{ item }}"  
+        state: present  
+      loop: "{{ zabbix_packages }}" 
+
+    - name: Настройка psql
+      include: psql_settings.yml
+
+    - name: Настройка zabbix
+      include: zabbix_settings.yml
+  when: 
+    - not admin_docker
+    - admin_zabbix
+    - ansible_distribution == "RED"
+    - not zabbix_agent
+  notify: 
+    - Перезагрузить PostgreSQL
+    - Перезапустить nginx
+    - Перезапустить zabbix-server
+    - Перезапустить zabbix-agent
+
+###
+
+- name: Установка и настройка zabbix-agent
+  include: zabbix_agent.yml
+  notify:
+    - Перезапустить zabbix-agent
+  tags:
+    - zabbix-agent
+
+- name: Разворот cacti
+  include: cacti.yml
+  tags:
+    - cacti

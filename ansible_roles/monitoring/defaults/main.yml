@@ -1,0 +1,38 @@
+---
+# если используется docker, то zabbix доступен по localhost:8080 
+admin_docker: false
+admin_zabbix: false
+
+postgre_version: 13
+zabbix_env_php_maj_version: 8
+zabbix_env_php_min_version: 2
+
+postgre_hba_conf: "{{ '/var/lib/pgsql/data/pg_hba.conf' if postgres_version is not defined else ('/var/lib/pgsql/' ~ postgres_version ~ '/data/pg_hba.conf') }}"
+postgre_conf: "{{ '/var/lib/pgsql/data/postgresql.conf' if postgres_version is not defined else ('/var/lib/pgsql/' ~ postgres_version ~ '/data/postgresql.conf') }}"
+
+zones_name:  
+  - "craft.zone"   #.local конфликтует с bind
+
+# для локального заббикса 
+admin_zabbix_postgres_user: "zabbix"
+admin_zabbix_postgres_db: "zabbix_db"
+admin_zabbix_postgres_password: "zabbix_password"
+admin_zabbix_servername: "zabbix.{{ zones_name[0] }}"
+admin_zabbix_nginx_conf: "/etc/nginx/conf.d/zabbix.conf"
+admin_zabbix_conf: "/etc/zabbix/zabbix_server.conf"
+admin_zabbix_nginx_port: 8080
+admin_zabbix_sql_form_folder: "/usr/share/zabbix-sql-scripts/postgresql/"
+ip_admin_default: "127.0.0.1" #не менять на localhost
+postgre_socket_dir: "/tmp"
+
+zabbix_packages: 
+  - zabbix-server-pgsql  
+  - zabbix-nginx-conf   
+  - zabbix-sql-scripts   
+  - zabbix-agent
+
+# для /etc/hosts
+dns_crutch: false
+zabbix_agent: false
+
+ip_admin_zdns: localhost

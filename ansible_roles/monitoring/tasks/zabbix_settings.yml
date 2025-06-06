@@ -1,0 +1,33 @@
+---
+- name: Редачим zabbix конфиг
+  template:
+    src: zabbix_conf.j2
+    dest: "{{ admin_zabbix_conf }}"
+
+- name: Редачим zabbix-nginx конфиг
+  template:
+    src: zabbix_nginx_conf.j2
+    dest: "{{ admin_zabbix_nginx_conf }}"
+
+- name: Включить и запустить Zabbix сервер и агент  
+  systemd:  
+    name: "{{ item }}"  
+    state: started  
+    enabled: yes  
+  loop:  
+    - zabbix-server  
+    - zabbix-agent  
+    - php-fpm.service 
+
+- name: Включить и запустить Nginx  
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Добавить строку с IP и доменом в /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ ip_admin_default }} {{ admin_zabbix_servername }}"
+    state: present
+  when: dns_crutch

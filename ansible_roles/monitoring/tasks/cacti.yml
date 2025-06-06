@@ -1,0 +1,79 @@
+---
+- name: Создать директорию для проекта (если её нет)
+  file:
+    path: /docker/cacti 
+    state: directory
+    mode: '0755'
+
+- name: Создать директорию для сертов (если её нет)
+  file:
+    path: /docker/cacti/certs
+    state: directory
+    mode: '0755'
+
+- name: Создать директорию для nginx (если её нет)
+  file:
+    path: /docker/cacti/nginx
+    state: directory
+    mode: '0755'
+
+- name: Копировать цепочку сертов 
+  copy:
+    src: "files/craft.tech.crt"
+    dest: "/docker/cacti/certs/craft.tech.crt"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Копировать КЛЮЧ! 
+  copy:
+    src: "files/craft.tech.key"
+    dest: "/docker/cacti/certs/craft.tech.key"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Копировать rootCA.crt в доверенные сертификаты
+  copy:
+    src: files/rootCA.crt
+    dest: /etc/pki/ca-trust/source/anchors/rootCA.crt
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Обновить доверенные сертификаты
+  command: update-ca-trust extract
+
+- name: .env create
+  template:
+    src: cacti_env.j2
+    dest: /docker/cacti/.env
+    mode: '0644'
+
+- name: my-php.ini
+  template:
+    src: cacti-php.j2
+    dest: /docker/cacti/cacti-php.ini
+    mode: '0644'
+
+- name: cacti.sql
+  copy:
+    src: cacti.sql
+    dest: /docker/cacti/cacti.sql
+    mode: '0644'
+
+- name: Скопировать файл docker-compose.yml на удаленную машину
+  copy:
+    src: files/cacti_docker_conf.yml
+    dest: /docker/cacti/docker-compose.yml
+    mode: '0644'
+
+- name: cacti_docker_nginx
+  template:
+    src: cacti_docker_nginx.j2
+    dest: /docker/cacti/nginx/default.conf
+
+- name: Запустить сервисы Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: /docker/cacti
+    state: present

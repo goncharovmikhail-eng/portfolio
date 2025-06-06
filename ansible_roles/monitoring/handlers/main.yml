@@ -1,0 +1,29 @@
+---
+- name: Перезапустить nginx  
+  systemd:  
+    name: nginx  
+    state: restarted 
+
+- name: Перезапустить zabbix-server  
+  systemd:  
+    name: zabbix-server
+    state: restarted
+
+- name: Перезапустить zabbix-agent  
+  systemd:  
+    name: zabbix-agent
+    state: restarted
+
+- name: Перезагрузить PostgreSQL  
+  systemd:
+    name: postgresql-13
+    state: restarted
+- name: рестартуем службу dns named
+  systemd:
+    name: named
+    state: restarted
+
+# - name: перезапуск php
+#   systemd:
+#     name: postgresql-13
+#     state: restarted

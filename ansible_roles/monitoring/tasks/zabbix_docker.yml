@@ -1,0 +1,55 @@
+---
+- name: Создать директорию для проекта (если её нет)
+  file:
+    path: /docker/zabbix
+    state: directory
+    mode: '0755'
+
+- name: Создать директорию для сертов (если её нет)
+  file:
+    path: /docker/zabbix/certs
+    state: directory
+    mode: '0755'
+
+- name: Копировать цепочку сертов для zabbix
+  copy:
+    src: "files/craft.tech.crt"
+    dest: "/docker/zabbix/certs/craft.tech.crt"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Копировать КЛЮЧ! для zabbix
+  copy:
+    src: "files/craft.tech.key"
+    dest: "/docker/zabbix/certs/craft.tech.key"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Копировать rootCA.crt в доверенные сертификаты
+  copy:
+    src: files/rootCA.crt
+    dest: /etc/pki/ca-trust/source/anchors/rootCA.crt
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Обновить доверенные сертификаты
+  command: update-ca-trust extract
+
+- name: Скопировать файл docker-compose.yml на удаленную машину
+  template:
+    src: zabbix_docker_conf.j2
+    dest: /docker/zabbix/docker-compose.yml
+    mode: '0644'
+
+- name: zabbix_docker_nginx
+  template:
+    src: zabbix_docker_nginx.j2
+    dest: "/docker/zabbix/nginx.conf"
+
+- name: Запустить сервисы Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: /docker/zabbix
+    state: present
